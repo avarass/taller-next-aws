@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wicked | Defying Gravity Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Playfair+Display:ital,wght@0,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --elphaba-green: #008a45;
+            --elphaba-dark: #062414;
+            --glinda-pink: #ff69b4;
+            --glinda-light: #ffe4f1;
+            --witch-black: #0a0a0a;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Playfair Display', serif;
+            overflow-x: hidden;
+            background-color: var(--witch-black);
+            color: white;
+        }
+
+        /* Contenedor Principal Split */
+        .main-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            transition: all 0.8s ease-in-out;
+        }
+
+        .side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: flex 0.5s ease;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .side:hover {
+            flex: 1.5;
+        }
+
+        /* Estilo Elphaba */
+        .elphaba {
+            background: linear-gradient(135deg, var(--elphaba-dark) 0%, #000 100%);
+            border-right: 2px solid var(--elphaba-green);
+        }
+
+        .elphaba h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--elphaba-green);
+            font-size: 3rem;
+            text-shadow: 0 0 20px rgba(0, 138, 69, 0.6);
+        }
+
+        /* Estilo Glinda */
+        .glinda {
+            background: linear-gradient(135deg, #000 0%, #4a0e2e 100%);
+        }
+
+        .glinda h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--glinda-pink);
+            font-size: 3rem;
+            text-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+        }
+
+        /* Botón Dinámico */
+        .magic-btn {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+
+        .elphaba .magic-btn:hover {
+            background: var(--elphaba-green);
+            box-shadow: 0 0 30px var(--elphaba-green);
+        }
+
+        .glinda .magic-btn:hover {
+            background: var(--glinda-pink);
+            box-shadow: 0 0 30px var(--glinda-pink);
+        }
+
+        /* Partículas Mágicas */
+        #particles-js {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Texto Flotante Central */
+        .center-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .center-title h1 {
+            font-size: 5rem;
+            margin: 0;
+            letter-spacing: 10px;
+            opacity: 0.8;
+        }
+
+        /* Animación de entrada */
+        .fade-in {
+            animation: fadeIn 2s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; }
+            .center-title h1 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="center-title">
+        <h1 class="fade-in">WICKED</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="side elphaba" id="elphaba-side">
+            <h2>Elphaba</h2>
+            <p>"Everyone deserves the chance to fly."</p>
+            <button class="magic-btn" onclick="castSpell('green')">Desafiar Gravedad</button>
+        </div>
+
+        <div class="side glinda" id="glinda-side">
+            <h2>Glinda</h2>
+            <p>"It's good to see me, isn't it?"</p>
+            <button class="magic-btn" onclick="castSpell('pink')">Ser Popular</button>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // Efecto de chispas/magia simple
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.style.position = 'fixed';
+        canvas.style.top = 0;
+        canvas.style.left = 0;
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '99';
+
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 5 + 1;
+                this.speedX = Math.random() * 3 - 1.5;
+                this.speedY = Math.random() * 3 - 1.5;
+                this.color = color;
+                this.opacity = 1;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.01;
+            }
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function castSpell(type) {
+            const color = type === 'green' ? '#00ff00' : '#ff69b4';
+            for (let i = 0; i < 50; i++) {
+                particles.push(new Particle(window.innerWidth/2, window.innerHeight/2, color));
+            }
+            
+            // Sonido visual o cambio de fondo
+            const body = document.body;
+            if(type === 'green') {
+                console.log("Defying Gravity!");
+                document.getElementById('elphaba-side').style.flex = "3";
+                setTimeout(() => document.getElementById('elphaba-side').style.flex = "1", 2000);
+            } else {
+                console.log("Popular!");
+                document.getElementById('glinda-side').style.flex = "3";
+                setTimeout(() => document.getElementById('glinda-side').style.flex = "1", 2000);
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].opacity <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Seguir el mouse con rastro mágico
+        window.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.8) {
+                const color = e.clientX < window.innerWidth / 2 ? 'var(--elphaba-green)' : 'var(--glinda-pink)';
+                particles.push(new Particle(e.clientX, e.clientY, color));
+            }
+        });
+    </script>
+</body>
+</html>
